@@ -15,6 +15,18 @@ class ImageProcessor:
         return gray
 
     @staticmethod
+    def threshold_image(image: np.array):
+        _, threshold = cv2.threshold(image, 0, 255, cv2.THRESH_OTSU)
+
+        return threshold
+
+    @staticmethod
+    def invert(image: np.array):
+        inverted = cv2.bitwise_not(image)
+
+        return inverted
+
+    @staticmethod
     def resize_picture_32(image: np.array):
         height, width = image.shape[:2]
         new_height = round(height / 32) * 32
