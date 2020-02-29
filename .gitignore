@@ -127,3 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+/.idea/
+/car_parts_text_recognition/files/
+/tests/images/
+/tests/unittests/table_parser/
+/test_creator.py
