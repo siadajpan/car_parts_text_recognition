@@ -15,11 +15,18 @@ from car_parts_text_recognition.recognition.neural_network.text_postion_recognit
 class Main:
     def __init__(self):
         self.text_position_recognition = TextPositionRecognitionContours()
+        self.text_position_recognition_nn = TextPositionRecognitionNN()
+        self.pixel_position = PixelTextRecognition()
 
-    def predict_text_position(self, image: np.array):
-        boxes = self.text_position_recognition.find_text_boxes(image)
+    def predict_text_position_nn(self, image: np.array):
+        boxes = self.text_position_recognition_nn.predict_text_positions(image)
 
         return boxes
+
+    def find_text_positions_contours(self, image: np.array):
+        letters, words = self.text_position_recognition.find_text_boxes(image)
+
+        return letters, words
 
     def draw_boxes(self, image, boxes):
         self.text_position_recognition.draw_boxes(image, boxes)
@@ -31,14 +38,15 @@ class Main:
 
 
 if __name__ == '__main__':
-    img = cv2.imread(os.path.join(settings.Locations.FILES, '1.jpg'))
+    IMAGE_PATH = os.path.join(settings.Locations.FILES, '1.jpg')
+
+    img = cv2.imread(IMAGE_PATH)
 
     main = Main()
-    bxs = main.predict_text_position(img)
-    # main.draw_boxes(img, bxs)
-    new_boxes = main.update_boxes(img, bxs)
-    main.draw_boxes(img, new_boxes)
+    bxs_letters, bxs_words = main.find_text_positions_contours(img)
+    main.draw_boxes(img, bxs_words)
     cv2.imshow('g', img)
+
     while True:
         if cv2.waitKey(0) == ord('q'):
             cv2.destroyAllWindows()
