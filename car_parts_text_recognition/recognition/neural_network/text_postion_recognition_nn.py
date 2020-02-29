@@ -148,7 +148,7 @@ class TextPositionRecognitionNN(ImageProcessor):
         return rectangles
 
     @staticmethod
-    def draw_boxes(image, boxes):
+    def draw_boxes(image: np.array, boxes: List[BoundBox]):
         for rectangle in boxes:
             start_x, start_y = rectangle.start_x, rectangle.start_y
             end_x, end_y = rectangle.end_x, rectangle.end_y
