@@ -7,30 +7,31 @@ from imutils import object_detection
 from car_parts_text_recognition import settings
 from car_parts_text_recognition.image_processor.image_processor import \
     ImageProcessor
+from car_parts_text_recognition.recognition.utils.bound_box import BoundBox
 
 
-class TextPositionRecognition(ImageProcessor):
+class TextPositionRecognitionNN(ImageProcessor):
     def __init__(self):
         super().__init__()
-        self.net = None
-        self.layerNames: Optional[List[str]] = None
-        self.init_neural_network()
-        self.image_pre_processor = ImageProcessor()
-        self.rectangles = []
-        self.confidences = []
+        self._net = None
+        self._layerNames: Optional[List[str]] = None
+        self._init_neural_network()
+        self._image_pre_processor = ImageProcessor()
+        self._rectangles = []
+        self._confidences = []
 
-    def init_neural_network(self):
-        self.layerNames = ["feature_fusion/Conv_7/Sigmoid",
+    def _init_neural_network(self):
+        self._layerNames = ["feature_fusion/Conv_7/Sigmoid",
                            "feature_fusion/concat_3"]
 
-        self.net = cv2.dnn.readNet(settings.Locations.NEURAL_NET)
+        self._net = cv2.dnn.readNet(settings.Locations.NEURAL_NET)
 
-    def init_pass(self):
-        self.rectangles = []
-        self.confidences = []
+    def _init_pass(self):
+        self._rectangles = []
+        self._confidences = []
 
     @staticmethod
-    def row_data_to_rect(col_index, row_index, row_data):
+    def _row_data_to_rect(col_index, row_index, row_data):
         # compute the offset factor as our resulting feature
         # maps will be 4x smaller than the input image
         (offsetX, offsetY) = (col_index * 4.0, row_index * 4.0)
@@ -50,7 +51,7 @@ class TextPositionRecognition(ImageProcessor):
         return start_x, start_y, end_x, end_y
 
     @staticmethod
-    def get_row_and_confidence(scores, geometry, row_index):
+    def _get_row_and_confidence(scores, geometry, row_index):
         # extract the scores (probabilities), followed by the
         # geometrical data used to derive potential bounding box
         # coordinates that surround text
@@ -59,15 +60,15 @@ class TextPositionRecognition(ImageProcessor):
 
         return row_data, confidence
 
-    def update_rectangles(self, col_index, row_index, row_data):
-        rectangle = self.row_data_to_rect(col_index, row_index, row_data)
-        self.rectangles.append(rectangle)
+    def _update_rectangles(self, col_index, row_index, row_data):
+        rectangle = self._row_data_to_rect(col_index, row_index, row_data)
+        self._rectangles.append(rectangle)
 
-    def update_confidences(self, confidence):
-        self.confidences.append(confidence)
+    def _update_confidences(self, confidence):
+        self._confidences.append(confidence)
 
-    def process_columns(self, scores, geometry, row_index):
-        row_data, confidence = self.get_row_and_confidence(
+    def _process_columns(self, scores, geometry, row_index):
+        row_data, confidence = self._get_row_and_confidence(
             scores, geometry, row_index
         )
         number_columns = scores.shape[3]
@@ -79,33 +80,33 @@ class TextPositionRecognition(ImageProcessor):
             if position_confidence < 0.5:
                 continue
 
-            self.update_rectangles(col_index, row_index, row_data)
-            self.update_confidences(position_confidence)
+            self._update_rectangles(col_index, row_index, row_data)
+            self._update_confidences(position_confidence)
 
-    def decode_predictions(self, scores, geometry):
+    def _decode_predictions(self, scores, geometry):
         # grab the number of rows and columns from the scores volume, then
         # initialize our set of bounding box rectangles and corresponding
         # confidence scores
         number_rows = scores.shape[2]
 
         for row_index in range(0, number_rows):
-            self.process_columns(scores, geometry, row_index)
+            self._process_columns(scores, geometry, row_index)
 
-    def forward_pass_nn(self, blob):
-        self.net.setInput(blob)
-        (scores, geometry) = self.net.forward(self.layerNames)
+    def _forward_pass_nn(self, blob):
+        self._net.setInput(blob)
+        (scores, geometry) = self._net.forward(self._layerNames)
 
         return scores, geometry
 
-    def process_rectangles(self):
+    def _process_rectangles(self):
         boxes = object_detection.non_max_suppression(
-            np.array(self.rectangles), probs=self.confidences
+            np.array(self._rectangles), probs=self._confidences
         )
 
         return boxes
 
     @staticmethod
-    def blob_from_image(image):
+    def _blob_from_image(image):
         height, width = image.shape[:2]
 
         # construct a blob from the image and then perform a forward pass of
@@ -117,7 +118,7 @@ class TextPositionRecognition(ImageProcessor):
         return blob
 
     @staticmethod
-    def rescale_boxes(boxes: np.array, fx: float, fy: float):
+    def _rescale_boxes(boxes: np.array, fx: float, fy: float):
         boxes = boxes.astype(float)
         boxes[:, 0] /= fx
         boxes[:, 1] /= fy
@@ -125,21 +126,31 @@ class TextPositionRecognition(ImageProcessor):
         boxes[:, 3] /= fy
         return boxes.astype(int)
 
+    @staticmethod
+    def _arrays_to_bound_boxes(boxes: np.array):
+        rectangles = [BoundBox(*box) for box in boxes]
+
+        return rectangles
+
     def predict_text_positions(self, image: np.array):
         old_height, old_width = image.shape[:2]
-        image = self.image_pre_processor.resize_picture_32(image)
-        blob = self.blob_from_image(image)
-        scores, geometry = self.forward_pass_nn(blob)
-        self.decode_predictions(scores, geometry)
-        boxes = self.process_rectangles()
+        image = self._image_pre_processor.resize_picture_32(image)
+        blob = self._blob_from_image(image)
+        scores, geometry = self._forward_pass_nn(blob)
+        self._decode_predictions(scores, geometry)
+        boxes = self._process_rectangles()
 
         height, width = image.shape[:2]
-        boxes = self.rescale_boxes(boxes, width / old_width,
-                                   height / old_height)
+        boxes = self._rescale_boxes(boxes, width / old_width,
+                                    height / old_height)
+        rectangles = self._arrays_to_bound_boxes(boxes)
 
-        return boxes
+        return rectangles
 
     @staticmethod
     def draw_boxes(image, boxes):
-        for (startX, startY, endX, endY) in boxes:
-            cv2.rectangle(image, (startX, startY), (endX, endY), (0, 255, 0), 2)
+        for rectangle in boxes:
+            start_x, start_y = rectangle.start_x, rectangle.start_y
+            end_x, end_y = rectangle.end_x, rectangle.end_y
+            cv2.rectangle(image, (start_x, start_y), (end_x, end_y),
+                          (0, 255, 0), 1)
