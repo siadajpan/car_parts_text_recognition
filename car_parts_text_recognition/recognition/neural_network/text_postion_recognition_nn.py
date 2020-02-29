@@ -146,11 +146,3 @@ class TextPositionRecognitionNN(ImageProcessor):
         rectangles = self._arrays_to_bound_boxes(boxes)
 
         return rectangles
-
-    @staticmethod
-    def draw_boxes(image: np.array, boxes: List[BoundBox]):
-        for rectangle in boxes:
-            start_x, start_y = rectangle.start_x, rectangle.start_y
-            end_x, end_y = rectangle.end_x, rectangle.end_y
-            cv2.rectangle(image, (start_x, start_y), (end_x, end_y),
-                          (0, 255, 0), 1)

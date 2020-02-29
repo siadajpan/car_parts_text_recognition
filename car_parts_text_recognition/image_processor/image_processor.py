@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple, List
 
 import cv2
 import numpy as np
@@ -57,3 +57,27 @@ class ImageProcessor:
         for i, contour in enumerate(contours):
             cv2.drawContours(image_binary, contours, i, 255,
                              thickness=-1)
+
+    @staticmethod
+    def draw_box(image: np.array, rectangle: BoundBox,
+                 color: Tuple[int, int, int] = (0, 255, 0)) -> None:
+        """
+        Draw box on the image with position from BoundBox
+        :param image: image to draw on
+        :param rectangle: BoundBox type, with x start, x end, y start, y end
+        :param color: rgb color to draw rectangle
+        :return: None
+        """
+        start_x, start_y = rectangle.start_x - 1, rectangle.start_y - 1
+        end_x, end_y = rectangle.end_x + 1, rectangle.end_y + 1
+        cv2.rectangle(image, (start_x, start_y), (end_x, end_y), color, 1)
+
+    def draw_boxes(self, image: np.array, boxes: List[BoundBox]) -> None:
+        """
+        Draw boxes on the image
+        :param image:
+        :param boxes: list of BoundBox with pixel positions
+        :return: None
+        """
+        for rectangle in boxes:
+            self.draw_box(image, rectangle)

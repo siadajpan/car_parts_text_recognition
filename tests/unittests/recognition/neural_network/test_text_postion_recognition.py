@@ -11,7 +11,7 @@ from car_parts_text_recognition.recognition.utils.bound_box import BoundBox
 
 
 class TestTextPositionRecognition(TestCase):
-    @patch.object(TextPositionRecognitionNN, 'init_neural_network')
+    @patch.object(TextPositionRecognitionNN, '_init_neural_network')
     def setUp(self, init_nn_mock) -> None:
         self.init_nn_mock = init_nn_mock
         self.recognition = TextPositionRecognitionNN()
@@ -239,16 +239,3 @@ class TestTextPositionRecognition(TestCase):
         self.recognition._process_rectangles.assert_called()
         self.recognition._rescale_boxes.assert_called()
         self.recognition._arrays_to_bound_boxes.assert_called()
-
-    @patch('cv2.rectangle')
-    def test_draw_boxes(self, rectangle_mock):
-        # given
-        image = MagicMock()
-        boxes = [[1, 2, 3, 4]]
-        
-        # when
-        self.recognition.draw_boxes(image, boxes)
-        
-        # then
-        rectangle_mock.assert_called()
-

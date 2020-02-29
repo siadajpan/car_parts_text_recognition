@@ -46,31 +46,6 @@ class TestTextPositionRecognitionNoNet(TestCase):
         self.recognition.invert.assert_called()
         self.assertEqual('inv', self.recognition._image_binary)
 
-    @patch('cv2.rectangle')
-    def test_draw_box(self, rectangle_mock):
-        # given
-        rectangle = BoundBox(1, 2, 3, 4)
-        image = MagicMock()
-
-        # when
-        self.recognition.draw_box(image, rectangle)
-
-        # then
-        rectangle_mock.assert_called_with(image, (0, 1), (4, 5), (0, 255, 0), 1)
-
-    def test_draw_boxes(self):
-        # given
-        box1, box2 = MagicMock(), MagicMock()
-        image = MagicMock()
-        self.recognition.draw_box = MagicMock()
-
-        # when
-        self.recognition.draw_boxes(image, [box1, box2])
-
-        # then
-        self.recognition.draw_box.assert_has_calls(
-            [call(image, box1), call(image, box2)])
-
     def test__contours_to_boxes(self):
         # given
         contour1 = np.array([[[1, 4]], [[2, 15]]])

@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, call
 
 import cv2
 import numpy as np
@@ -99,4 +99,29 @@ class TestImageProcessor(TestCase):
         # then
         self.image_processor.find_contours.assert_called()
         draw_contours_mock.assert_called()
+
+    @patch('cv2.rectangle')
+    def test_draw_box(self, rectangle_mock):
+        # given
+        rectangle = BoundBox(1, 2, 3, 4)
+        image = MagicMock()
+
+        # when
+        self.image_processor.draw_box(image, rectangle)
+
+        # then
+        rectangle_mock.assert_called_with(image, (0, 1), (4, 5), (0, 255, 0), 1)
+
+    def test_draw_boxes(self):
+        # given
+        box1, box2 = MagicMock(), MagicMock()
+        image = MagicMock()
+        self.image_processor.draw_box = MagicMock()
+
+        # when
+        self.image_processor.draw_boxes(image, [box1, box2])
+
+        # then
+        self.image_processor.draw_box.assert_has_calls(
+            [call(image, box1), call(image, box2)])
 
