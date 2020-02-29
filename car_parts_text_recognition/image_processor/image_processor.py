@@ -3,6 +3,8 @@ from typing import Optional
 import cv2
 import numpy as np
 
+from car_parts_text_recognition.recognition.utils.bound_box import BoundBox
+
 
 class ImageProcessor:
     def __init__(self):
@@ -35,3 +37,23 @@ class ImageProcessor:
         new_image = cv2.resize(image, (new_width, new_height))
 
         return new_image
+
+    @staticmethod
+    def cut_box(image: np.array, box: BoundBox):
+        image_cut = image[box.start_y: box.end_y, box.start_x: box.end_x]
+
+        return image_cut
+
+    @staticmethod
+    def find_contours(image):
+        contours, hierarchy = cv2.findContours(
+            image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        return contours
+
+    def fill_holes(self, image_binary):
+        contours = self.find_contours(image_binary)
+
+        for i, contour in enumerate(contours):
+            cv2.drawContours(image_binary, contours, i, 255,
+                             thickness=-1)
