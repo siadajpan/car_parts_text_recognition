@@ -92,7 +92,6 @@ class BoundBoxAnalyzer:
         groups = [group]
 
         for distance, contour in zip(distances, sorted_boxes[1:]):
-            print('d', distance, contour)
             if distance <= self._max_letter_distance:
                 group.append(contour)
             else:

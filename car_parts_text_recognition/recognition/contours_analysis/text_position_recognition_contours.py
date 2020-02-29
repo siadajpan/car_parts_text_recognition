@@ -10,17 +10,17 @@ from car_parts_text_recognition.recognition.contours_analysis.bound_box_analyzer
 from car_parts_text_recognition.recognition.utils.bound_box import BoundBox
 
 
-class TextPositionRecognitionContours:
+class TextPositionRecognitionContours(ImageProcessor):
     """
     Recognition of text on the image with the use of contour analyzing.
     """
     def __init__(self):
-        self._image_processor = ImageProcessor()
+        super().__init__()
         self._image: Optional[np.array] = None
         self._image_binary: Optional[np.array] = None
         self._box_analyzer = BoundBoxAnalyzer()
 
-    def update_image(self, image: np.array) -> None:
+    def _update_image(self, image: np.array) -> None:
         self._image = image
         self._pre_process_image()
 
@@ -31,9 +31,9 @@ class TextPositionRecognitionContours:
         fill holes, that is looking for white blobs
         :return: None
         """
-        gray = self._image_processor.to_gray(self._image)
-        binary = self._image_processor.threshold_image(gray)
-        inverted = self._image_processor.invert(binary)
+        gray = self.to_gray(self._image)
+        binary = self.threshold_image(gray)
+        inverted = self.invert(binary)
 
         self._image_binary = inverted
 
@@ -66,7 +66,7 @@ class TextPositionRecognitionContours:
 
         :return:
         """
-        contours = self._image_processor.find_contours(self._image_binary)
+        contours = self.find_contours(self._image_binary)
 
         return contours
 
@@ -87,7 +87,8 @@ class TextPositionRecognitionContours:
 
         return bounds
 
-    def find_text_boxes(self) -> Tuple[List[List[BoundBox]], List[BoundBox]]:
+    def find_text_boxes(self, image) \
+            -> Tuple[List[List[BoundBox]], List[BoundBox]]:
         """
         Use image processing function fill holes, to fill all close shaped
         contours on the image. This helps reducing amount of contours to analyze
@@ -96,8 +97,9 @@ class TextPositionRecognitionContours:
         :return: list of bounds around letters that are within each word,
         and list of bounds around each word
         """
-        self._image_processor.fill_holes(self._image_binary)
-        contours = self._image_processor.find_contours(self._image_binary)
+        self._update_image(image)
+        self.fill_holes(self._image_binary)
+        contours = self.find_contours(self._image_binary)
         bound_boxes = self._contours_to_boxes(contours)
         letters, words = self._box_analyzer.analyze_bound_boxes(bound_boxes)
 
