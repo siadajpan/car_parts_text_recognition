@@ -9,9 +9,8 @@ from car_parts_text_recognition.recognition.contours_analysis. \
 if __name__ == '__main__':
     img = cv2.imread(os.path.join(settings.Locations.FILES, '1.jpg'))
     t = TextPositionRecognitionContours()
-    t.update_image(img)
 
-    letters, words = t.find_text_boxes()
+    letters, words = t.find_text_boxes(img)
 
     t.draw_boxes(img, words)
 
