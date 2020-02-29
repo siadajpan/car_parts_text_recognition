@@ -5,9 +5,9 @@ import numpy as np
 
 from car_parts_text_recognition.image_processor.image_processor import \
     ImageProcessor
-from car_parts_text_recognition.recognition.bound_box_analyzer import \
+from car_parts_text_recognition.recognition.contours_analysis.bound_box_analyzer import \
     BoundBoxAnalyzer
-from car_parts_text_recognition.recognition.text_position_recognition_contours import \
+from car_parts_text_recognition.recognition.contours_analysis.text_position_recognition_contours import \
     TextPositionRecognitionContours
 from car_parts_text_recognition.recognition.utils.bound_box import BoundBox
 

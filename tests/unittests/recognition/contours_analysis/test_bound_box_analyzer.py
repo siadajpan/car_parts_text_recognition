@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch, call
 import numpy as np
 
 from car_parts_text_recognition import settings
-from car_parts_text_recognition.recognition.bound_box_analyzer import \
+from car_parts_text_recognition.recognition.contours_analysis.bound_box_analyzer import \
     BoundBoxAnalyzer
 from car_parts_text_recognition.recognition.utils.bound_box import BoundBox
 
