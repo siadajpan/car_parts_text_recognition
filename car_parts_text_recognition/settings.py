@@ -18,4 +18,4 @@ class BoundBoxAnalysis:
     WINDOW_CUT_HORIZONTAL = 100
     MAX_LETTERS_DISTANCE = 15
     FONT_HEIGHTS = np.array([8, 14])
-    MIN_WORD_LENGTH = 'min_word_length'
+    MIN_WORD_LENGTH = 2
